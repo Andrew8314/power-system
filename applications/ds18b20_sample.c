@@ -69,6 +69,12 @@ static void read_temp_entry(void *parameter)
                            abs(sensor_data.data.temp % 10),
                            sensor_data.timestamp);
             }
+            // Update global data
+            extern float global_temp_ds18;
+            extern rt_mutex_t data_mutex;
+            rt_mutex_take(data_mutex, RT_WAITING_FOREVER);
+            global_temp_ds18 = sensor_data.data.temp / 10.0;
+            rt_mutex_release(data_mutex);
         }
         rt_thread_mdelay(100);
     }
@@ -96,7 +102,7 @@ static void ds18b20_cmd(int argc, char *argv[])
                                                           read_temp_entry,
                                                           "temp_ds18b20",
                                                           1024,
-                                                          RT_THREAD_PRIORITY_MAX / 2,
+                                                          16,
                                                           20);
             if (ds18b20_thread != RT_NULL)
             {

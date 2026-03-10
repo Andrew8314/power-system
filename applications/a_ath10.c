@@ -5,8 +5,9 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2026-03-08     Y8314       the first version
+ * 2025-03-20     Y8314       the first version
  */
+
 
 #include <rtthread.h>
 #include <rtdevice.h>
@@ -14,7 +15,7 @@
 #include "aht10.h"
 
 
-#define DBG_TAG "a_ath10"
+#define DBG_TAG "app_temp_humi"
 #define DBG_LVL DBG_LOG
 #include <rtdbg.h>
 
@@ -63,7 +64,7 @@ int app_temp_humi_init(void){
     }
 
     rt_thread_t tid;
-    tid = rt_thread_create("app_temp_humi", app_temp_humi_entry, dev, 1024, 20, 10);
+    tid = rt_thread_create("app_temp_humi", app_temp_humi_entry, dev, 1024, 15, 10);
 
     if(tid != RT_NULL) rt_thread_startup(tid);
     else return -1;
@@ -71,7 +72,7 @@ int app_temp_humi_init(void){
     return 0;
 }
 
-//INIT_DEVICE_EXPORT(app_temp_humi_init);
+INIT_DEVICE_EXPORT(app_temp_humi_init);
 
 void app_th_start(){
     rt_mutex_release(thread_mutex);

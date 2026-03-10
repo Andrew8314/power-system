@@ -12,6 +12,8 @@
 #include <rtdevice.h>
 #include <board.h>
 
+#include <drv_lcd.h>
+
 #define DBG_TAG "main"
 #define DBG_LVL         DBG_LOG
 #include <rtdbg.h>
@@ -23,6 +25,7 @@
 int main(void)
 {
     unsigned int count = 1;
+
 
     /* 设置 LED 引脚为输出模式 */
     rt_pin_mode(PIN_LED_R, PIN_MODE_OUTPUT);

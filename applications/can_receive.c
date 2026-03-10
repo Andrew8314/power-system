@@ -71,6 +71,14 @@ static void can_rx_thread(void *parameter)
                 /* 传感器上报失效或错误 */
                 rt_kprintf("[CAN] ID:0x%03X | Sensor Error! Error Code: 0x%02X\n", rxmsg.id, error_flag);
             }
+            // Update global data
+            extern int32_t global_current_ma;
+            extern uint8_t global_error_flag;
+            extern rt_mutex_t data_mutex;
+            rt_mutex_take(data_mutex, RT_WAITING_FOREVER);
+            global_current_ma = current_mA;
+            global_error_flag = error_flag;
+            rt_mutex_release(data_mutex);
         }
     }
 }

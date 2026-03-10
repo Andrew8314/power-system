@@ -6,7 +6,10 @@
 #define REFER_VOLTAGE       3300        /* 参考电压 3.3V，单位：mV */
 #define CONVERT_BITS        4096        /* 12位 ADC 的分度值 (2^12) */
 
-void get_adc_voltage(void)
+extern float global_voltage;
+extern rt_mutex_t data_mutex;
+
+void update_adc_voltage(void)
 {
     rt_adc_device_t adc_dev;
     rt_uint32_t value, vol_mv;
@@ -31,9 +34,13 @@ void get_adc_voltage(void)
     /* 打印真实电压，格式为 X.XXX V (巧妙避开 %f 浮点打印) */
     rt_kprintf("Voltage: %d.%03d V\n", vol_mv / 1000, vol_mv % 1000);
 
+    /* Update global */
+    rt_mutex_take(data_mutex, RT_WAITING_FOREVER);
+    global_voltage = vol_mv / 1000.0;
+    rt_mutex_release(data_mutex);
+
     /* 5. 关闭通道 (省电) */
     rt_adc_disable(adc_dev, ADC_DEV_CHANNEL);
 }
 
-
-MSH_CMD_EXPORT(get_adc_voltage, read adc1 channel 0 voltage);
+MSH_CMD_EXPORT(update_adc_voltage, update adc1 channel 0 voltage);

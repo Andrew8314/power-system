@@ -111,6 +111,7 @@
 #define RT_USING_I2C_BITOPS
 #define RT_USING_PIN
 #define RT_USING_ADC
+#define RT_USING_PWM
 #define RT_USING_RTC
 #define RT_USING_SOFT_RTC
 #define RT_USING_SENSOR
@@ -377,6 +378,9 @@
 /* Onboard Peripheral Drivers */
 
 #define BSP_USING_USB_TO_USART
+#define BSP_USING_ONBOARD_LCD
+#define BSP_USING_ONBOARD_LCD_PWM_BL
+#define BSP_USING_ONBOARD_LCD_TEST
 #define BSP_USING_AHT21
 #define BSP_USING_CAN
 #define BSP_USING_CAN1
@@ -389,6 +393,9 @@
 #define BSP_USING_UART1
 #define BSP_USING_ONCHIP_RTC
 #define BSP_RTC_USING_LSE
+#define BSP_USING_PWM
+#define BSP_USING_PWM14
+#define BSP_USING_PWM14_CH1
 #define BSP_USING_ADC
 #define BSP_USING_ADC1
 #define BSP_USING_I2C
@@ -396,6 +403,8 @@
 #define BSP_I2C3_SCL_PIN 64
 #define BSP_I2C3_SDA_PIN 65
 #define BSP_USING_USBH
+#define BSP_USING_EXT_FMC_IO
+#define BSP_USING_FMC
 /* end of On-chip Peripheral Drivers */
 
 /* Board extended module Drivers */
