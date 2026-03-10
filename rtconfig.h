@@ -110,6 +110,7 @@
 #define RT_USING_I2C
 #define RT_USING_I2C_BITOPS
 #define RT_USING_PIN
+#define RT_USING_ADC
 #define RT_USING_RTC
 #define RT_USING_SOFT_RTC
 #define RT_USING_SENSOR
@@ -287,6 +288,9 @@
 #define PKG_USING_AHT10_SAMPLE
 #define PKG_AHT10_I2C_BUS_NAME "i2c3"
 #define PKG_USING_AHT10_V210
+#define PKG_USING_DS18B20
+#define PKG_DS18B20_USING_SENSOR_V1
+#define PKG_USING_DS18B20_LATEST_VERSION
 /* end of sensors drivers */
 
 /* touch drivers */
@@ -385,6 +389,8 @@
 #define BSP_USING_UART1
 #define BSP_USING_ONCHIP_RTC
 #define BSP_RTC_USING_LSE
+#define BSP_USING_ADC
+#define BSP_USING_ADC1
 #define BSP_USING_I2C
 #define BSP_USING_I2C3
 #define BSP_I2C3_SCL_PIN 64
