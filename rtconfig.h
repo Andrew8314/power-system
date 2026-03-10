@@ -16,6 +16,9 @@
 #define RT_USING_IDLE_HOOK
 #define RT_IDLE_HOOK_LIST_SIZE 4
 #define IDLE_THREAD_STACK_SIZE 1024
+#define RT_USING_TIMER_SOFT
+#define RT_TIMER_THREAD_PRIO 4
+#define RT_TIMER_THREAD_STACK_SIZE 2048
 
 /* kservice optimization */
 
@@ -65,7 +68,7 @@
 #define FINSH_USING_MSH
 #define FINSH_THREAD_NAME "tshell"
 #define FINSH_THREAD_PRIORITY 20
-#define FINSH_THREAD_STACK_SIZE 4096
+#define FINSH_THREAD_STACK_SIZE 8192
 #define FINSH_USING_HISTORY
 #define FINSH_HISTORY_LINES 5
 #define FINSH_USING_SYMTAB
@@ -102,10 +105,13 @@
 #define RT_USING_SERIAL
 #define RT_USING_SERIAL_V1
 #define RT_SERIAL_USING_DMA
-#define RT_SERIAL_RB_BUFSZ 64
+#define RT_SERIAL_RB_BUFSZ 256
+#define RT_USING_CAN
 #define RT_USING_I2C
 #define RT_USING_I2C_BITOPS
 #define RT_USING_PIN
+#define RT_USING_RTC
+#define RT_USING_SOFT_RTC
 #define RT_USING_SENSOR
 #define RT_USING_SENSOR_CMD
 
@@ -269,6 +275,10 @@
 /* HPMicro SDK */
 
 /* end of HPMicro SDK */
+
+/* FT32 HAL & SDK Drivers */
+
+/* end of FT32 HAL & SDK Drivers */
 /* end of HAL & SDK Drivers */
 
 /* sensors drivers */
@@ -364,6 +374,8 @@
 
 #define BSP_USING_USB_TO_USART
 #define BSP_USING_AHT21
+#define BSP_USING_CAN
+#define BSP_USING_CAN1
 /* end of Onboard Peripheral Drivers */
 
 /* On-chip Peripheral Drivers */
@@ -371,6 +383,8 @@
 #define BSP_USING_GPIO
 #define BSP_USING_UART
 #define BSP_USING_UART1
+#define BSP_USING_ONCHIP_RTC
+#define BSP_RTC_USING_LSE
 #define BSP_USING_I2C
 #define BSP_USING_I2C3
 #define BSP_I2C3_SCL_PIN 64

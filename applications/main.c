@@ -36,7 +36,7 @@ int main(void)
 
         /* LED 灯灭 */
         rt_pin_write(PIN_LED_R, PIN_HIGH);
-       // LOG_D("led off");
+        //LOG_D("led off");
         rt_thread_mdelay(500);
 
         count++;
@@ -44,4 +44,29 @@ int main(void)
 
     return 0;
 }
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <rtthread.h>
+
+void test_udisk_write(void)
+{
+    int fd;
+    rt_kprintf("Start writing to U-disk...\n");
+
+    // 只打开并创建一个极其简单的文件
+    fd = open("/my_test.txt", O_WRONLY | O_CREAT);
+    if (fd >= 0)
+    {
+        write(fd, "OK", 2); // 只写2个字节
+        close(fd);
+        rt_kprintf("Write Success!\n");
+    }
+    else
+    {
+        rt_kprintf("Open Failed!\n");
+    }
+}
+// 将这个函数导出到 MSH 控制台
+MSH_CMD_EXPORT(test_udisk_write, a simple write test);
 
