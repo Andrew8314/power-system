@@ -7,6 +7,10 @@
 #include <stdio.h>
 #include "ssd1306.h"
 #include <stdlib.h> /* 用于 abs() 函数 */
+#include <board.h>
+
+/* 替换为您实际连接按键的引脚 */
+#define PIN_KEY_TOGGLE  GET_PIN(C, 1)
 
 /* 引入外部全局变量 */
 extern float g_aht10_temp;
@@ -97,3 +101,68 @@ int oled_display_init(void)
     return -RT_ERROR;
 }
 INIT_APP_EXPORT(oled_display_init);
+
+
+/* 按键轮询线程入口函数 */
+static void key_thread_entry(void *parameter)
+{
+    /* 1. 设置按键引脚为上拉输入模式 */
+    rt_pin_mode(PIN_KEY_TOGGLE, PIN_MODE_INPUT_PULLUP);
+
+    uint8_t key_pressed = 0; /* 按键按下状态标志位 */
+
+    while (1)
+    {
+        /* 2. 检测按键是否被按下（低电平有效） */
+        if (rt_pin_read(PIN_KEY_TOGGLE) == PIN_LOW)
+        {
+            rt_thread_mdelay(20); /* 软件防抖延时 20ms */
+
+            /* 3. 再次确认按键按下，并且之前未被标记为按下状态 */
+            if (rt_pin_read(PIN_KEY_TOGGLE) == PIN_LOW && key_pressed == 0)
+            {
+                key_pressed = 1; /* 标记按键已按下，防止长按时疯狂触发 */
+
+                /* 4. 获取当前屏幕状态并进行翻转 */
+                if (ssd1306_GetDisplayOn() == 1)
+                {
+                    ssd1306_SetDisplayOn(0); /* 如果当前是开的，则关屏 */
+                    rt_kprintf("OLED Display OFF\n");
+                }
+                else
+                {
+                    ssd1306_SetDisplayOn(1); /* 如果当前是关的，则开屏 */
+                    rt_kprintf("OLED Display ON\n");
+                }
+            }
+        }
+        else
+        {
+            /* 按键已释放，清除按下标志位 */
+            key_pressed = 0;
+        }
+
+        /* 5. 线程休眠，让出 CPU 给其他传感器读取线程 */
+        rt_thread_mdelay(50);
+    }
+}
+
+/* 自动初始化并启动按键线程 */
+int key_control_init(void)
+{
+    rt_thread_t tid = rt_thread_create("key_ctrl",
+                                       key_thread_entry,
+                                       RT_NULL,
+                                       1024,
+                                       24,   /* 优先级可设置在 OLED 显示线程之下 */
+                                       10);
+    if (tid != RT_NULL)
+    {
+        rt_thread_startup(tid);
+        return RT_EOK;
+    }
+    return -RT_ERROR;
+}
+/* 导出到应用层自动初始化阶段，开机自动运行 */
+INIT_APP_EXPORT(key_control_init);
+

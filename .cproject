@@ -74,6 +74,7 @@
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Inc}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//packages/aht10-v2.1.0}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//packages/ds18b20-latest/inc}&quot;" />
+                  <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//packages/rs485-latest/inc}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//packages/ssd1306-latest/inc}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//rt-thread/components/dfs/filesystems/elmfat}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//rt-thread/components/dfs/include}&quot;" />
@@ -179,6 +180,7 @@
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Inc}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//packages/aht10-v2.1.0}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//packages/ds18b20-latest/inc}&quot;" />
+                  <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//packages/rs485-latest/inc}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//packages/ssd1306-latest/inc}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//rt-thread/components/dfs/filesystems/elmfat}&quot;" />
                   <listOptionValue builtIn="false" value="&quot;${workspace_loc://${ProjName}//rt-thread/components/dfs/include}&quot;" />

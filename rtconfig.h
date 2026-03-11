@@ -300,6 +300,12 @@
 #define PKG_USING_SSD1306_I2C_BUS_NAME "i2c1"
 #define PKG_USING_SSD1306_SAMPLE
 #define PKG_USING_SSD1306_LATEST_VERSION
+#define PKG_USING_RS485
+#define RS485_USING_DEV
+#define RS485_USING_DMA_RX
+#define RS485_USING_DMA_TX
+#define RS485_SW_DLY_US 0
+#define PKG_USING_RS485_LATEST_VERSION
 /* end of peripheral libraries and drivers */
 
 /* AI packages */
@@ -391,6 +397,9 @@
 #define BSP_USING_GPIO
 #define BSP_USING_UART
 #define BSP_USING_UART1
+#define BSP_USING_UART6
+#define BSP_UART6_RX_USING_DMA
+#define BSP_UART6_TX_USING_DMA
 #define BSP_USING_ONCHIP_RTC
 #define BSP_RTC_USING_LSE
 #define BSP_USING_ADC

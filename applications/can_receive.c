@@ -37,15 +37,23 @@ static void can_rx_thread(void *parameter)
     while (1)
     {
         rxmsg.hdr = -1;
-        rt_sem_take(&rx_sem, RT_WAITING_FOREVER);
+
+        /* 如果超过 2000 毫秒没有收到目标 CAN 数据，就认为掉线。*/
+        if (rt_sem_take(&rx_sem, rt_tick_from_millisecond(2000)) != RT_EOK)
+        {
+            /* 发生超时，说明传感器断开或者停止发送，归零全局变量 */
+            g_can_current_ma = 0;
+            continue; /* 跳过本次数据读取，继续下一轮等待 */
+        }
+
         rt_device_read(can_dev, 0, &rxmsg, sizeof(rxmsg));
 
         if (rxmsg.id == TARGET_CAN_ID && rxmsg.len >= 5)
         {
             uint32_t raw_value = ((uint32_t)rxmsg.data[0] << 24) |
-                                 ((uint32_t)rxmsg.data[1] << 16) |
-                                 ((uint32_t)rxmsg.data[2] << 8)  |
-                                 ((uint32_t)rxmsg.data[3]);
+                    ((uint32_t)rxmsg.data[1] << 16) |
+                    ((uint32_t)rxmsg.data[2] << 8)  |
+                    ((uint32_t)rxmsg.data[3]);
 
             int32_t current_mA = (int32_t)(raw_value - 0x80000000);
             uint8_t error_flag = rxmsg.data[4];
@@ -55,7 +63,7 @@ static void can_rx_thread(void *parameter)
                 /* 正常情况：更新到全局变量供 OLED 读取 */
                 g_can_current_ma = current_mA;
                 /* 保留后台打印用于调试 */
-                rt_kprintf("[CAN] ID:0x%03X | Current: %d mA\n", rxmsg.id, current_mA);
+             //   rt_kprintf("[CAN] ID:0x%03X | Current: %d mA\n", rxmsg.id, current_mA);
             }
             else
             {
