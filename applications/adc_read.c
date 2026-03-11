@@ -6,7 +6,10 @@
 #define REFER_VOLTAGE       3300        /* 参考电压 3.3V，单位：mV */
 #define CONVERT_BITS        4096        /* 12位 ADC 的分度值 (2^12) */
 
-void get_adc_voltage(void)
+/* 新增全局变量，供 OLED 显示线程读取 */
+uint32_t g_adc_voltage_mv = 0;
+
+static void adc_read_entry(void *parameter)
 {
     rt_adc_device_t adc_dev;
     rt_uint32_t value, vol_mv;
@@ -21,19 +24,32 @@ void get_adc_voltage(void)
     /* 2. 使能通道 */
     rt_adc_enable(adc_dev, ADC_DEV_CHANNEL);
 
-    /* 3. 读取采样值 (获取原始 12位 数字) */
-    value = rt_adc_read(adc_dev, ADC_DEV_CHANNEL);
-    rt_kprintf("Raw Value: %d\n", value);
+    /* 3. 循环读取 */
+    while (1)
+    {
+        value = rt_adc_read(adc_dev, ADC_DEV_CHANNEL);
+        vol_mv = value * REFER_VOLTAGE / CONVERT_BITS;
 
-    /* 4. 转换为实际电压值 (单位: mV) */
-    vol_mv = value * REFER_VOLTAGE / CONVERT_BITS;
+        /* 更新到全局变量供 OLED 读取 */
+        g_adc_voltage_mv = vol_mv;
 
-    /* 打印真实电压，格式为 X.XXX V (巧妙避开 %f 浮点打印) */
-    rt_kprintf("Voltage: %d.%03d V\n", vol_mv / 1000, vol_mv % 1000);
-
-    /* 5. 关闭通道 (省电) */
-    rt_adc_disable(adc_dev, ADC_DEV_CHANNEL);
+        /* 延时 1000ms 读取一次 */
+        rt_thread_mdelay(1000);
+    }
 }
 
+/* 初始化并启动 ADC 采集线程 */
+int adc_read_init(void)
+{
+    rt_thread_t tid;
 
-MSH_CMD_EXPORT(get_adc_voltage, read adc1 channel 0 voltage);
+    tid = rt_thread_create("adc_read", adc_read_entry, RT_NULL, 1024, 22, 10);
+    if (tid != RT_NULL)
+    {
+        rt_thread_startup(tid);
+        return RT_EOK;
+    }
+    return -RT_ERROR;
+}
+/* 导出到自动初始化，开机即运行 */
+INIT_APP_EXPORT(adc_read_init);

@@ -1,13 +1,4 @@
 /*
- * Copyright (c) 2006-2021, RT-Thread Development Team
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- * Change Logs:
- * Date           Author       Notes
- * 2026-03-11     Y8314       the first version
- */
-/*
  * 专属的环境数据 OLED 显示模块
  */
 
@@ -15,10 +6,14 @@
 #include <rtdevice.h>
 #include <stdio.h>
 #include "ssd1306.h"
+#include <stdlib.h> /* 用于 abs() 函数 */
 
-/* 引入 a_ath10.c 中定义的全局变量 */
+/* 引入外部全局变量 */
 extern float g_aht10_temp;
 extern float g_aht10_humi;
+extern uint32_t g_adc_voltage_mv;
+extern int32_t g_ds18b20_temp;
+extern int32_t g_can_current_ma; /* 引入 CAN 电流全局变量 */
 
 static void oled_display_entry(void *parameter)
 {
@@ -34,29 +29,54 @@ static void oled_display_entry(void *parameter)
         /* 每次刷新前清屏为黑色 */
         ssd1306_Fill(Black);
 
-        /* 2. 绘制静态标题 (使用 11x18 字体) */
-        ssd1306_SetCursor(2, 0);
-        ssd1306_WriteString("Env Monitor", Font_11x18, White);
-
         /* 3. 格式化并绘制温度数据 */
-        /* 采用避开 %f 浮点打印的技巧，与传感器原始日志格式保持一致 */
         snprintf(buf, sizeof(buf), "Temp: %d.%d C",
-                 (int)g_aht10_temp,
-                 (int)(g_aht10_temp * 10) % 10);
-        ssd1306_SetCursor(2, 24);
-        ssd1306_WriteString(buf, Font_11x18, White);
+                (int)g_aht10_temp,
+                (int)(g_aht10_temp * 10) % 10);
+        ssd1306_SetCursor(2, 0);
+        ssd1306_WriteString(buf, Font_7x10, White);
 
         /* 4. 格式化并绘制湿度数据 */
         snprintf(buf, sizeof(buf), "Humi: %d.%d %%",
-                 (int)g_aht10_humi,
-                 (int)(g_aht10_humi * 10) % 10);
-        ssd1306_SetCursor(2, 44);
-        ssd1306_WriteString(buf, Font_11x18, White);
+                (int)g_aht10_humi,
+                (int)(g_aht10_humi * 10) % 10);
+        ssd1306_SetCursor(2, 12);
+        ssd1306_WriteString(buf, Font_7x10, White);
 
-        /* 5. 更新显存到屏幕 */
+        /* 5. 格式化并绘制 ADC 电压数据 */
+        snprintf(buf, sizeof(buf), "ADC : %d.%03d V",
+                g_adc_voltage_mv / 1000,
+                g_adc_voltage_mv % 1000);
+        ssd1306_SetCursor(2, 24);
+        ssd1306_WriteString(buf, Font_7x10, White);
+
+        /* 4. 格式化并绘制 DS18B20 温度数据 (Y=48) */
+        /* 根据 ds18b20_sample.c 的逻辑，传感器原始数据放大了 10 倍 */
+        if (g_ds18b20_temp >= 0)
+        {
+            snprintf(buf, sizeof(buf), "DS18 : %d.%d C",
+                    g_ds18b20_temp / 10,
+                    g_ds18b20_temp % 10);
+        }
+        else
+        {
+            /* 负温处理，利用 abs() 取绝对值 */
+            snprintf(buf, sizeof(buf), "DS18 : -%d.%d C",
+                    abs(g_ds18b20_temp / 10),
+                    abs(g_ds18b20_temp % 10));
+        }
+        ssd1306_SetCursor(2, 36);
+        ssd1306_WriteString(buf, Font_7x10, White);
+
+        /* 5. CAN 总线电流 (Y=48) */
+        snprintf(buf, sizeof(buf), "CAN I: %d mA", g_can_current_ma);
+        ssd1306_SetCursor(2, 48);
+        ssd1306_WriteString(buf, Font_7x10, White);
+
+        /* 6. 更新显存到屏幕 */
         ssd1306_UpdateScreen();
 
-        /* 延时 1000ms 刷新一次，与 AHT10 采集频率匹配 */
+        /* 延时 1000ms 刷新一次 */
         rt_thread_mdelay(1000);
     }
 }
@@ -65,7 +85,7 @@ int oled_display_init(void)
 {
     rt_thread_t tid;
 
-    /* 创建显示线程，优先级设为 21 (略低于传感器的 20，确保先采后显) */
+    /* 创建显示线程 */
     tid = rt_thread_create("oled_ui", oled_display_entry, RT_NULL, 1024, 21, 10);
 
     if (tid != RT_NULL)
@@ -76,7 +96,4 @@ int oled_display_init(void)
 
     return -RT_ERROR;
 }
-/* 导出到自动初始化环节，系统启动后自动运行 */
 INIT_APP_EXPORT(oled_display_init);
-
-
