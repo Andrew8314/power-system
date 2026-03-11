@@ -112,7 +112,6 @@
 #define RT_USING_PIN
 #define RT_USING_ADC
 #define RT_USING_RTC
-#define RT_USING_SOFT_RTC
 #define RT_USING_SENSOR
 #define RT_USING_SENSOR_CMD
 
@@ -296,6 +295,11 @@
 /* touch drivers */
 
 /* end of touch drivers */
+#define PKG_USING_SSD1306
+#define PKG_USING_SSD1306_I2C_ADDRESS 0x3C
+#define PKG_USING_SSD1306_I2C_BUS_NAME "i2c1"
+#define PKG_USING_SSD1306_SAMPLE
+#define PKG_USING_SSD1306_LATEST_VERSION
 /* end of peripheral libraries and drivers */
 
 /* AI packages */
@@ -392,6 +396,9 @@
 #define BSP_USING_ADC
 #define BSP_USING_ADC1
 #define BSP_USING_I2C
+#define BSP_USING_I2C1
+#define BSP_I2C1_SCL_PIN 77
+#define BSP_I2C1_SDA_PIN 79
 #define BSP_USING_I2C3
 #define BSP_I2C3_SCL_PIN 64
 #define BSP_I2C3_SDA_PIN 65

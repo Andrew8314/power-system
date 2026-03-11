@@ -18,6 +18,10 @@
 #define DBG_LVL DBG_LOG
 #include <rtdbg.h>
 
+/*全局变量供显示线程读取 */
+float g_aht10_temp = 0.0f;
+float g_aht10_humi = 0.0f;
+
 static rt_mutex_t thread_mutex;
 
 void app_temp_humi_entry(void* argument){
@@ -30,11 +34,13 @@ void app_temp_humi_entry(void* argument){
 
        /* 读取湿度 */
        humidity = aht10_read_humidity(dev);
-       LOG_D("humidity   : %d.%d %%", (int)humidity, (int)(humidity * 10) % 10);
+       g_aht10_humi = humidity; // 赋值给全局变量
+    //   LOG_D("humidity   : %d.%d %%", (int)humidity, (int)(humidity * 10) % 10);
 
        /* 读取温度 */
        temperature = aht10_read_temperature(dev);
-       LOG_D("temperature: %d.%d", (int)temperature, (int)(temperature * 10) % 10);
+       g_aht10_temp = temperature; // 赋值给全局变量
+    //   LOG_D("temperature: %d.%d", (int)temperature, (int)(temperature * 10) % 10);
 
        rt_mutex_release(thread_mutex);
 
