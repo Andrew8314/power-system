@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/stat.h> /* 引入 stat，用于探测目录是否存在 */
+#include <dfs_fs.h>  /* 新增：引入文件系统挂载 API */
 
 #define DBG_TAG "app.logger"
 #define DBG_LVL DBG_LOG
@@ -42,18 +43,36 @@ static void udisk_logger_entry(void *parameter)
     {
         /* 每次写操作前，先探测根目录是否存在（检查 U 盘是否在线） */
         /* 如果 U 盘掉线，stat 会返回非 0 值，我们直接跳过本次写入，保护线程不崩溃 */
+        /* 1. 探测根目录是否存在（检查文件系统是否已挂载） */
         if (stat("/", &buffer) != 0)
         {
-            LOG_E("U-disk offline! Waiting for reconnect...");
-            rt_thread_mdelay(2000);
-            continue;
+            LOG_W("Filesystem not found on '/', attempting to mount U-disk...");
+
+            /* 尝试主动挂载文件系统
+             * RT-Thread 通常将 U 盘的块设备命名为 "udisk" 或 "udisk0"
+             * "elm" 代表 FatFS 文件系统格式
+             */
+            if (dfs_mount("ud0-0", "/", "elm", 0, 0) == 0)
+            {
+                LOG_I("Mounted 'udisk0' to '/' successfully!");
+            }
+            else if (dfs_mount("udisk", "/", "elm", 0, 0) == 0)
+            {
+                LOG_I("Mounted 'udisk' to '/' successfully!");
+            }
+            else
+            {
+                LOG_E("Mount failed. Please plug the U-disk again...");
+                rt_thread_mdelay(2000);
+                continue; /* 挂载失败，说明 U 盘真没插好，延时后重试 */
+            }
         }
 
         now = time(RT_NULL);
         tm_info = localtime(&now);
 
         snprintf(current_file_path, sizeof(current_file_path), "/log_%04d%02d%02d.csv",
-                 tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday);
+                tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday);
 
         /* 使用 access 判断文件是否存在，更加安全 */
         int is_new_file = (stat(current_file_path, &buffer) != 0) ? 1 : 0;
