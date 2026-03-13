@@ -77,7 +77,7 @@ int app_temp_humi_init(void){
     return 0;
 }
 
-INIT_DEVICE_EXPORT(app_temp_humi_init);
+//INIT_DEVICE_EXPORT(app_temp_humi_init);
 
 void app_th_start(){
     rt_mutex_release(thread_mutex);

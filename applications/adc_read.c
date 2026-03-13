@@ -2,17 +2,19 @@
 #include <rtdevice.h>
 
 #define ADC_DEV_NAME        "adc1"      /* 驱动注册的设备名 */
-#define ADC_DEV_CHANNEL     0           /* 对应硬件的通道号PA0 */
+#define ADC_DEV_CHANNEL_0   0           /* 对应硬件的通道号PA0 */
+#define ADC_DEV_CHANNEL_1   1           /* 对应硬件的通道号 PA1 */
 #define REFER_VOLTAGE       3300        /* 参考电压 3.3V，单位：mV */
 #define CONVERT_BITS        4096        /* 12位 ADC 的分度值 (2^12) */
 
-/* 新增全局变量，供 OLED 显示线程读取 */
-uint32_t g_adc_voltage_mv = 0;
+/* 全局变量，供其他线程读取 */
+uint32_t g_adc_voltage_mv = 0;       /* 通道 0 的电压 */
+uint32_t g_adc_voltage_mv_ch1 = 0;   /* 新增：通道 1 的电压 */
 
 static void adc_read_entry(void *parameter)
 {
     rt_adc_device_t adc_dev;
-    rt_uint32_t value, vol_mv;
+    rt_uint32_t value0, value1;
 
     /* 1. 查找设备 */
     adc_dev = (rt_adc_device_t)rt_device_find(ADC_DEV_NAME);
@@ -22,16 +24,19 @@ static void adc_read_entry(void *parameter)
     }
 
     /* 2. 使能通道 */
-    rt_adc_enable(adc_dev, ADC_DEV_CHANNEL);
+    rt_adc_enable(adc_dev, ADC_DEV_CHANNEL_0);
+    rt_adc_enable(adc_dev, ADC_DEV_CHANNEL_1); /* 新增：使能通道 1 */
 
     /* 3. 循环读取 */
     while (1)
     {
-        value = rt_adc_read(adc_dev, ADC_DEV_CHANNEL);
-        vol_mv = value * REFER_VOLTAGE / CONVERT_BITS;
+        /* 读取通道 0 */
+        value0 = rt_adc_read(adc_dev, ADC_DEV_CHANNEL_0);
+        g_adc_voltage_mv = value0 * REFER_VOLTAGE / CONVERT_BITS;
 
-        /* 更新到全局变量供 OLED 读取 */
-        g_adc_voltage_mv = vol_mv;
+        /* 读取通道 1 */
+        value1 = rt_adc_read(adc_dev, ADC_DEV_CHANNEL_1);
+        g_adc_voltage_mv_ch1 = value1 * REFER_VOLTAGE / CONVERT_BITS;
 
         /* 延时 1000ms 读取一次 */
         rt_thread_mdelay(1000);

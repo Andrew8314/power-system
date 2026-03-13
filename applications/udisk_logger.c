@@ -19,11 +19,14 @@
 #include <rtdbg.h>
 
 /* ================= 引入外部传感器全局变量 ================= */
-extern float g_aht10_temp;
-extern float g_aht10_humi;
+//extern float g_aht10_temp;
+//extern float g_aht10_humi;
 extern uint32_t g_adc_voltage_mv;
 extern int32_t g_ds18b20_temp;
 extern int32_t g_can_current_ma;
+extern uint32_t g_adc_voltage_mv_ch1;
+/* 新增：引入全局报警状态标志 */
+extern uint8_t g_sys_alarm_status;
 
 /* 挂载根路径，如果挂载在指定文件夹，可改为 "/udisk" 等 */
 #define UDISK_ROOT_PATH ""
@@ -82,19 +85,53 @@ static void udisk_logger_entry(void *parameter)
         {
             if (is_new_file)
             {
-                const char *header = "Time,AHT10_T(C),AHT10_H(%),DS18B20(C),ADC_V(V),CAN_I(mA)\n";
+                const char *header = "Time,DS18B20(C),ADC_V0(V),ADC_V1(V),CAN_I(mA)\n";
                 write(fd, header, strlen(header));
             }
 
             memset(write_buf, 0, sizeof(write_buf));
-            snprintf(write_buf, sizeof(write_buf), "%04d-%02d-%02d %02d:%02d:%02d,%.2f,%.2f,%.2f,%.3f,%d\n",
+            snprintf(write_buf, sizeof(write_buf), "%04d-%02d-%02d %02d:%02d:%02d,%.2f,%.3f,%.3f,%d\n",
                     tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday,
                     tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec,
-                    g_aht10_temp, g_aht10_humi, (float)g_ds18b20_temp / 10.0f,
-                    (float)g_adc_voltage_mv / 1000.0f, (int)g_can_current_ma);
+                    (float)g_ds18b20_temp / 10.0f,
+                    (float)g_adc_voltage_mv / 1000.0f,
+                    (float)g_adc_voltage_mv_ch1 / 1000.0f,
+                    (int)g_can_current_ma);
 
             write(fd, write_buf, strlen(write_buf));
             close(fd);
+        }
+        /* ================= 2. 写入异常专属日志 (仅在发生报警时触发) ================= */
+        if (g_sys_alarm_status != 0)
+        {
+            char alarm_file_path[64];
+            snprintf(alarm_file_path, sizeof(alarm_file_path), "/alarm_%04d%02d%02d.csv",
+                    tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday);
+
+            int is_new_alarm_file = (stat(alarm_file_path, &buffer) != 0) ? 1 : 0;
+            int fd_alarm = open(alarm_file_path, O_WRONLY | O_CREAT | O_APPEND);
+            if (fd_alarm >= 0)
+            {
+                if (is_new_alarm_file)
+                {
+                    /* 异常日志的表头多了一个 Alarm_Code 列，方便排查具体是什么引起的报警 */
+                    const char *alarm_header = "Time,DS18B20(C),ADC_V0(V),ADC_V1(V),CAN_I(mA),Alarm_Code\n";
+                    write(fd_alarm, alarm_header, strlen(alarm_header));
+                }
+
+                memset(write_buf, 0, sizeof(write_buf));
+                snprintf(write_buf, sizeof(write_buf), "%04d-%02d-%02d %02d:%02d:%02d,%.2f,%.3f,%.3f,%d,0x%02X\n",
+                        tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday,
+                        tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec,
+                        (float)g_ds18b20_temp / 10.0f,
+                        (float)g_adc_voltage_mv / 1000.0f,
+                        (float)g_adc_voltage_mv_ch1 / 1000.0f,
+                        (int)g_can_current_ma,
+                        (int)g_sys_alarm_status);
+
+                write(fd_alarm, write_buf, strlen(write_buf));
+                close(fd_alarm);
+            }
         }
 
         rt_thread_mdelay(5000);
